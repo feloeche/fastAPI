@@ -101,8 +101,6 @@ def signup(user: UserRegister = Body(...)):
         f.write(json.dumps(results))
         return user
 
-
-
 ### Login a user
 @app.post(
     path="/login",
@@ -137,7 +135,6 @@ def show_all_users():
     - last_name: str
     - birth_date: date
     """
-
 
     with open("users.json", "r", encoding="utf-8") as f:
         results = json.loads(f.read())
@@ -196,8 +193,35 @@ def home():
     summary="Post a tweet",
     tags=["Tweet"]
     )
-def post():
-    pass
+def post(tweet: Tweet = Body(...)):
+    """
+    Post a tweet
+
+    This path operations register post a tweet in the app
+
+    Paremeters:
+        -Request body parameter
+            - tweet: Tweet
+
+    Returns a json with the basic tweet information:
+        - tweet_id: UUID
+        - content: str
+        - created_at: datetime
+        - update_at: Optional[datatime]
+        - by: User 
+    """
+    with open("tweets.json", "r+", encoding="utf-8") as f:
+        results = json.loads(f.read())
+        tweet_dict = tweet.dict()
+        tweet_dict["tweet_id"] = str(tweet_dict["tweet_id"])
+        tweet_dict["created_at"] = str(tweet_dict["created_at"])
+        tweet_dict["update_at"] = str(tweet_dict["update_at"])
+        tweet_dict["by"]["user_id"] = str(tweet_dict["by"]["user_id"])
+        tweet_dict["by"]["birth_date"] = str(tweet_dict["by"]["birth_date"])
+        results.append(tweet_dict)
+        f.seek(0)
+        f.write(json.dumps(results))
+        return tweet
 
 ### Show a tweet
 @app.get(

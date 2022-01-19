@@ -12,7 +12,7 @@ from pydantic.networks import EmailStr
 # FastAPI
 from fastapi import FastAPI
 from fastapi import status
-from fastapi import Body
+from fastapi import Body, Path
 
 
 app = FastAPI()
@@ -148,8 +148,28 @@ def show_all_users():
     summary="Show a user",
     tags=["Users"]
     )
-def show_user():
-    pass
+def show_user(user_id=Path(...)):
+    """    
+    Get  a Users
+
+    This path operation shows a specific user created in the app
+
+    Parameters: Path = user_id
+
+    Returns a list with the basic user information of all users created in the app:
+    - user_id: UUID
+    - email: Emailstr
+    - first_name: str
+    - last_name: str
+    - birth_date: date
+    """
+    with open("users.json", "r", encoding="utf-8") as f:
+        results = json.loads(f.read())
+        id_user = str(user_id)
+        for data in results:
+            if data["user_id"] == id_user:
+                return data
+                
 
 ### Delete a user
 @app.delete(
@@ -159,8 +179,18 @@ def show_user():
     summary="Delete a user",
     tags=["Users"]
     )
-def delete_user():
-    pass
+def delete_user(user_id=Path(...)):
+
+    with open("users.json", "r+", encoding="utf-8") as f:
+        results = json.loads(f.read())
+        id_user = str(user_id)
+        for data in results:
+            if data["user_id"] == id_user:
+                results.remove(data)
+            with open("users.json", "w", encoding="utf-8") as f:
+                f.seek(0)
+                f.write(json.dumps(results))
+                return data
 
 ### Update a user
 @app.put(
@@ -170,8 +200,22 @@ def delete_user():
     summary="Update a user",
     tags=["Users"]
     )
-def Updte_user():
-    pass
+def Updte_user(user_id = Path(...), user: UserRegister = Body(...)):
+    with open("users.json", "r", encoding="utf-8") as f:
+        results = json.loads(f.read())
+        id_user = str(user_id)
+        user_dict = user.dict()
+        user_dict["user_id"] = str(user_dict["user_id"])
+        user_dict["birth_date"] = str(user_dict["birth_date"])
+        for data in results:
+            if data["user_id"] == id_user:
+                results[results.index(data)] = user_dict
+                
+                with open("users.json", "w", encoding="utf-8") as f:
+                    f.seek(0)
+                    f.write(json.dumps(results))
+                return user
+
 
 ## Tweets
 
@@ -183,7 +227,25 @@ def Updte_user():
     summary="Show all Tweets",
     tags=["Tweet"])
 def home():
-    return {"Twitter API": "Working"}
+    """    
+    Get Users
+
+    This path operation shows all tweet created in the app
+
+    Parameters: None
+
+    Returns a list with the basic user information of all tweet created in the app:
+        - tweet_id: UUID
+        - content: str
+        - created_at: datetime
+        - update_at: Optional[datatime]
+        - by: User
+    """
+
+    with open("tweets.json", "r", encoding="utf-8") as f:
+        results = json.loads(f.read())
+        return results
+
 
 ### Post a tweet
 @app.post(
@@ -231,9 +293,15 @@ def post(tweet: Tweet = Body(...)):
     summary="Show a tweet",
     tags=["Tweet"]
     )
-def show_tweet():
-    pass
-
+def show_tweet(tweet_id = Path(...)):
+    
+    with open("tweets.json", "r", encoding="utf-8") as f:
+        results = json.loads(f.read())
+        tweet_id = str(tweet_id)
+        for data in results:
+            if data["tweet_id"] == tweet_id:
+                return data
+                
 ### Delete a tweet
 @app.delete(
     path="/tweets/{tweet_id}/delete",
